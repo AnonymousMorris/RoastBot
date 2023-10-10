@@ -5,6 +5,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
+/*
+This sends a request to the server for a response to the message and receives a request id
+ */
 public class RequestAIResponse {
     OkHttpClient client;
     public RequestAIResponse(){
@@ -34,6 +37,11 @@ public class RequestAIResponse {
         return futureAns;
 
     }
+
+
+    /*
+    This method pings the server with the request id to check if the request is done processing
+     */
     public CompletableFuture<String> getResponse (String requestId){
         Request request = new Request.Builder()
                 .url("http://localhost:5000/retrieve")
@@ -48,15 +56,17 @@ public class RequestAIResponse {
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 int responseCode = response.code();
+                //checks the code to see if it's still processing
                 if(responseCode == 202){
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(5000);
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
                     Call newCall = client.newCall(request);
                     newCall.enqueue(this);
                 }
+                //received an answer
                 else if(responseCode == 200){
                     String ans = response.body().string();
                     System.out.print(ans);
